@@ -115,16 +115,81 @@ function AutoTouchMoveEnd()
   removeEvent(eventDis[true])
 end
 
-function turnPlayer()
-  local playerDir = g_game.getLocalPlayer():getDirection()
+-------------------------------------------------
+--Attack Scripts---------------------------------
+-------------------------------------------------
 
-  if playerDir == 0 then
-    g_game.turn(East)
-  elseif playerDir == 1 or playerDir == 5 or playerDir == 4 then
-    g_game.turn(South)
-  elseif playerDir == 2 then
-    g_game.turn(West)
-  elseif playerDir == 3 or playerDir == 7 or playerDir == 6 then
-    g_game.turn(North)
+function getSortedBattleList()
+  local unsortedList = table.copy(modules.game_battle.battleButtonsByCreaturesList)
+
+  local tableCount = table.size(unsortedList)
+
+  local sortedTable = {}
+
+  for i=1,tableCount do
+    local helpValue = nil
+    
+    for a,b in pairs(unsortedList) do
+      if helpValue == nil then
+        helpValue = {creatureId = a, creatureData = b}
+      else
+        if b:getY() < helpValue.creatureData:getY() then
+          helpValue = {creatureId = a, creatureData = b}
+        end
+      end
+    end
+
+    sortedTable[i] = helpValue
+    unsortedList[helpValue.creatureId] = nil
+  end
+
+  return sortedTable
+end
+
+local battleListCounter = 1
+local lastAttackedMonster = 0
+
+function chooseAimFromBattleList()
+  local battleListTable = getSortedBattleList()
+  local tableCount = table.size(battleListTable)
+
+  if battleListCounter > tableCount then
+    battleListCounter = 1
+  end
+
+  for i=1,tableCount do
+    if battleListCounter > 1 and g_game.isAttacking() == false and lastAttackedMonster ~= battleListTable[battleListCounter - 1].creatureId then
+      battleListCounter = battleListCounter - 1
+    end
+
+    if isNpcOrSafeFight(battleListTable[battleListCounter].creatureId) then
+      g_game.attack(g_map.getCreatureById(battleListTable[battleListCounter].creatureId))
+      lastAttackedMonster = battleListTable[battleListCounter].creatureId
+      battleListCounter = battleListCounter + 1
+      return
+    end
+    battleListCounter = battleListCounter + 1
+
+    if battleListCounter > tableCount then
+      battleListCounter = 1
+    end
+  end
+end
+
+function isNpcOrSafeFight(creatureId)
+  local creatureData = g_map.getCreatureById(creatureId)
+
+  if creatureData:isMonster() then
+    return true
+  elseif creatureData:isPlayer() then
+    if g_game.isSafeFight() then
+      return false
+    else
+      return true
+    end
+  elseif creatureData:isNpc() then
+    return false
+  else
+    return false
   end
 end
