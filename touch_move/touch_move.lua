@@ -149,7 +149,7 @@ end
 local battleListCounter = 1
 local lastAttackedMonster = 0
 
-function chooseAimFromBattleList()
+function ChooseAimFromBattleList()
   local battleListTable = getSortedBattleList()
   local tableCount = table.size(battleListTable)
 
