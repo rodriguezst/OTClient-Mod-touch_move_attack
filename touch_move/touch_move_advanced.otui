@@ -131,7 +131,7 @@ MiniWindow
       anchors.top: arrowup.bottom
       anchors.horizontalCenter: arrowup.horizontalCenter
       margin-top: 5
-      @onMouseRelease: modules.touch_move.turnPlayer()
+      @onMouseRelease: modules.touch_move.chooseAimFromBattleList()
 
     ArrowSW
       id: arrownw
